@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project LUMINA - AI Chatbot</title>
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f5f5f5;
+        }
+
+        .logo span {
+            color: #8c52ff;
+            position: relative;
+            display: inline-block;
+            animation: float 3s infinite ease-in-out;
+            text-shadow: 0 0 8px rgba(140, 82, 255, 0.8);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Settings Panel Styles */
+        .settings-panel {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .settings-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .settings-group label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        select {
+            background-color: #262626;
+            color: #f5f5f5;
+            border: 1px solid #444;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238c52ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        select:hover {
+            border-color: #8c52ff;
+            box-shadow: 0 4px 8px rgba(140, 82, 255, 0.2);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #8c52ff;
+            box-shadow: 0 0 0 3px rgba(140, 82, 255, 0.25);
+        }
+
+        /* Checkbox Styling */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toggle-container::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, transparent, #8c52ff, transparent);
+            transform: translateX(-100%);
+            animation: slideIn 2s infinite alternate;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateX(100%); }
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #363636;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #f5f5f5;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+
+        input:checked + .slider {
+            background-color: #8c52ff;
+            box-shadow: 0 0 8px rgba(140, 82, 255, 0.6);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Main Container Styles */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .chat-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Chat Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1e1e1e;
+            position: relative;
+            z-index: 2;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 6px;
+        }
+
+        /* Message Bubble Styles */
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            justify-content: flex-end;
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+            animation: slideInLeft 0.4s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+        }
+
+        .user-message .message-content {
+            background-color: #8c52ff;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .bot-message .message-content {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        /* Avatar Styles */
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-avatar {
+            background-color: #564080;
+        }
+
+        .bot-avatar {
+            background-color: #444;
+        }
+
+        /* Input Area Styles */
+        .input-container {
+            margin-top: 1rem;
+            padding: 1rem 0;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        .input-field {
+            flex: 1;
+            background-color: #262626;
+            border: 1px solid #444;
+            border-radius: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            color: #f5f5f5;
+            font-size: 1rem;
+            resize: none;
+            min-height: 20px;
+            max-height: 120px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #8c52ff;
+        }
+
+        .send-button {
+            background-color: #8c52ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(140, 82, 255, 0.4);
+        }
+
+        .send-button:hover {
+            background-color: #9d6aff;
+            transform: scale(1.05);
+            animation: glowing 1.5s infinite;
+        }
+
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px rgba(140, 82, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(140, 82, 255, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(140, 82, 255, 0.5); }
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        /* Loading Animation */
+        .thinking {
+            display: flex;
+            padding: 0.75rem 1rem;
+            background-color: #2d2d2d;
+            border-radius: 1rem;
+            border-bottom-left-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #aaa;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.3s; }
+        .dot:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+        }
+
+        /* Holographic Robot Styles */
+        .hologram-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .hologram-ring {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(140, 82, 255, 0.2) 0%, rgba(140, 82, 255, 0) 70%);
+            animation: pulse-ring 4s infinite;
+            z-index: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
+            50% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
+        }
+
+        .hologram-robot {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 180px;
+            animation: hover 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 10px rgba(140, 82, 255, 0.8));
+            z-index: 1;
+            opacity: 0.9;
+            transition: all 0.5s ease;
+        }
+
+        @keyframes hover {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .hologram-ring-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(140, 82, 255, 0.5);
+            animation: ring-rotate 10s linear infinite;
+        }
+
+        @keyframes ring-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hologram-robot-avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hologram-face {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background-color: rgba(30, 30, 30, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(140, 82, 255, 0.5);
+            overflow: hidden;
+        }
+
+        .hologram-face::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(140, 82, 255, 0.1) 0%, rgba(140, 82, 255, 0) 50%);
+            z-index: 1;
+        }
+
+        .hologram-eyes {
+            display: flex;
+            justify-content: space-around;
+            width: 70%;
+            margin-bottom: 10px;
+            z-index: 2;
+        }
+
+        .hologram-eye {
+            width: 18px;
+            height: 18px;
+            background-color: #8c52ff;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+            box-shadow: 0 0 10px rgba(140, 82, 255, 0.8);
+        }
+
+        @keyframes blink {
+            0%, 96%, 98% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+
+        .hologram-eye::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 30%;
+            height: 30%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        .hologram-mouth {
+            width: 40px;
+            height: 8px;
+            background-color: #8c52ff;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(140, 82, 255, 0.8);
+        }
+
+        .hologram-mouth::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #8c52ff, #b78dff, #8c52ff);
+            animation: speak 2s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes speak {
+            0%, 100% { transform: scaleX(0.8); }
+            50% { transform: scaleX(1.2); }
+        }
+
+        .hologram-scan-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(140, 82, 255, 0.1),
+                rgba(140, 82, 255, 0.1) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 3;
+            animation: scan-move 2s linear infinite;
+        }
+
+        @keyframes scan-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 10px; }
+        }
+
+        .hologram-glitch {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(140, 82, 255, 0.2);
+            opacity: 0;
+            z-index: 2;
+            animation: glitch 5s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { opacity: 0; transform: translateX(0); }
+            92% { opacity: 0.5; transform: translateX(-5px); }
+            94% { opacity: 0.5; transform: translateX(5px); }
+            96% { opacity: 0.5; transform: translateX(-2px); }
+            98% { opacity: 0.5; transform: translateX(2px); }
+        }
+
+        .hologram-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: rgba(140, 82, 255, 0.6);
+            border-radius: 50%;
+            animation: float-up 4s infinite linear;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100%) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100%) translateX(10px); opacity: 0; }
+        }
+
+        /* Robot Emotion States */
+        .hologram-robot.friendly .hologram-face {
+            background-color: rgba(30, 30, 30, 0.5);
+        }
+        
+        .hologram-robot.friendly .hologram-eye {
+            background-color: #8c52ff;
+            animation: friendly-blink 4s infinite;
+        }
+        
+        @keyframes friendly-blink {
+            0%, 96%, 98% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.friendly .hologram-mouth {
+            width: 40px;
+            height: 10px;
+            border-radius: 10px;
+            transform: scaleX(1.1);
+        }
+
+        .hologram-robot.zen .hologram-face {
+            background-color: rgba(30, 60, 80, 0.5);
+        }
+        
+        .hologram-robot.zen .hologram-eye {
+            background-color: #52c8ff;
+            animation: zen-blink 8s infinite;
+            height: 6px;
+        }
+        
+        @keyframes zen-blink {
+            0%, 98%, 100% { transform: scaleY(1); }
+            99% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.zen .hologram-mouth {
+            width: 30px;
+            height: 6px;
+            border-radius: 10px;
+            background-color: #52c8ff;
+        }
+
+        .hologram-robot.teacher .hologram-face {
+            background-color: rgba(60, 30, 30, 0.5);
+        }
+        
+        .hologram-robot.teacher .hologram-eye {
+            background-color: #ff9652;
+            animation: teacher-blink 5s infinite;
+        }
+        
+        @keyframes teacher-blink {
+            0%, 95%, 97% { transform: scaleY(1); }
+            96% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.teacher .hologram-mouth {
+            width: 35px;
+            height: 8px;
+            border-radius: 10px;
+            background-color: #ff9652;
+        }
+        
+        .hologram-robot.teacher::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background-color: rgba(255, 150, 82, 0.3);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .hologram-robot.witty .hologram-face {
+            background-color: rgba(60, 20, 60, 0.5);
+        }
+        
+        .hologram-robot.witty .hologram-eye {
+            background-color: #ff52c8;
+            animation: witty-blink 3s infinite;
+        }
+        
+        @keyframes witty-blink {
+            0%, 90%, 92%, 98%, 100% { transform: scaleY(1); }
+            91%, 99% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.witty .hologram-mouth {
+            width: 40px;
+            height: 8px;
+            border-radius: 10px 10px 0 0;
+            background-color: #ff52c8;
+            transform: translateY(-3px) rotate(10deg);
+        }
+
+        .hologram-robot.thinking .hologram-eye {
+            animation: thinking 1s infinite;
+            background-color: #52ffb8;
+        }
+        
+        @keyframes thinking {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .hologram-robot.thinking .hologram-mouth {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: thinking-mouth 2s infinite;
+            background-color: #52ffb8;
+        }
+        
+        @keyframes thinking-mouth {
+            0%, 100% { transform: scale(0.8); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .hologram-robot.listening .hologram-eye {
+            animation: listening 0.5s infinite alternate;
+            background-color: #ffff52;
+        }
+        
+        @keyframes listening {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1.1); }
+        }
+        
+        .hologram-robot.listening .hologram-face {
+            border-color: rgba(255, 255, 82, 0.5);
+        }
+        
+        .hologram-robot.listening .hologram-mouth {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: listening-mouth 0.5s infinite alternate;
+            background-color: #ffff52;
+        }
+        
+        @keyframes listening-mouth {
+            0% { transform: scale(0.7); }
+            100% { transform: scale(1); }
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            color: #f5f5f5;
+            max-width: 80%;
+            margin: 0 auto;
+            padding: 2rem 0;
+            position: relative;
+            z-index: 3;
+        }
+        
+        .welcome-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #8c52ff, #b78dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .welcome-message p {
+            color: #aaa;
+            line-height: 1.5;
+            animation: fadeIn 1s ease-in-out 0.5s both;
+        }
+        
+        .welcome-message .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #8c52ff;
+            width: 0;
+            animation: typing 3.5s steps(40, end) forwards, blink-caret 0.75s step-end infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+          
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #8c52ff }
+        }
+
+        .personality-indicator {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            color: #aaa;
+            font-style: italic;
+            background: linear-gradient(90deg, #8c52ff, #b78dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 768px) {
+            .header-content, .settings-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .message-content {
+                max-width: 90%;
+            }
+
+            .hologram-robot {
+                width: 140px;
+                height: 140px;
+                bottom: 60px;
+            }
+            .message.bot-message {
+    opacity: 1;  /* Ensure visibility */
+    background-color: #f1f1f1; /* Light background for bot messages */
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.message.user-message {
+    opacity: 1; /* User message is always visible */
+    background-color: #e0e0e0; /* Light background for user messages */
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.message-content {
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+.avatar {
+    margin-right: 10px;
+}
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1>Project LUMINI <span>X</span></h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="settings-panel">
+        <div class="settings-container">
+            <div class="settings-group">
+                <label for="personality-select">AI Personality:</label>
+                <select id="personality-select" class="personality-select">
+                    <option value="friendly"> Friendly Assistant</option>
+                    <option value="zen"> Zen Master</option>
+                    <option value="teacher"> Helpful Teacher</option>
+                    <option value="witty">Witty Companion</option>
+                </select>
+            </div>
+            <div class="toggle-container">
+                <label for="voice-toggle">Voice Mode:</label>
+                <label class="switch">
+                    <input type="checkbox" id="voice-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <!-- Hologram Container -->
+        <div class="hologram-container">
+            <div class="hologram-ring">
+                <div class="hologram-ring-inner"></div>
+            </div>
+            <div class="hologram-robot friendly" id="hologram-robot">
+                <div class="hologram-scan-lines"></div>
+                <div class="hologram-glitch"></div>
+                <div class="hologram-robot-avatar">
+                    <div class="hologram-face">
+                        <div class="hologram-eyes">
+                            <div class="hologram-eye"></div>
+                            <div class="hologram-eye"></div>
+                        </div>
+                        <div class="hologram-mouth"></div>
+                    </div>
+                </div>
+                <div class="hologram-particles" id="particles"></div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="messages-container" id="messages-container">
+                <div class="welcome-message">
+                    <h3>Welcome to Project X</h3>
+                    <p class="typing-effect">Ask me anything to start the conversation!</p>
+                </div>
+            </div>
+            <div class="input-container">
+                <textarea 
+                    id="user-input" 
+                    class="input-field" 
+                    placeholder="Type your message here..." 
+                    rows="1"></textarea>
+                <button id="send-button" class="send-button" aria-label="Send message">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // DOM Elements
+        const messagesContainer = document.getElementById('messages-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const personalitySelect = document.getElementById('personality-select');
+        const voiceToggle = document.getElementById('voice-toggle');
+        const hologramRobot = document.getElementById('hologram-robot');
+        
+        // Initialize chat state
+        let isWaitingForResponse = false;
+        let thinkingIndicator = null;
+        let currentPersonality = 'friendly';
+        
+        // Add molecule and code holograms
+        function createAdditionalHolograms() {
+            // Create molecule hologram
+            const moleculeHologram = document.createElement('div');
+            moleculeHologram.className = 'molecule-hologram';
+            moleculeHologram.innerHTML = `
+                <div class="molecule-sphere center"></div>
+                <div class="molecule-orbit orbit-1">
+                    <div class="molecule-sphere electron"></div>
+                </div>
+                <div class="molecule-orbit orbit-2">
+                    <div class="molecule-sphere electron"></div>
+                </div>
+                <div class="molecule-orbit orbit-3">
+                    <div class="molecule-sphere electron"></div>
+                </div>
+            `;
+            document.querySelector('.hologram-container').appendChild(moleculeHologram);
+            
+            // Create code hologram
+            const codeHologram = document.createElement('div');
+            codeHologram.className = 'code-hologram';
+            codeHologram.innerHTML = `
+                <div class="code-lines">
+                    <div class="code-line line-1"></div>
+                    <div class="code-line line-2"></div>
+                    <div class="code-line line-3"></div>
+                    <div class="code-line line-4"></div>
+                    <div class="code-line line-5"></div>
+                    <div class="code-line line-6"></div>
+                </div>
+                <div class="code-bracket left">{</div>
+                <div class="code-bracket right">}</div>
+            `;
+            document.querySelector('.hologram-container').appendChild(codeHologram);
+            
+            // Add hologram specific styles
+            const styleElement = document.createElement('style');
+            styleElement.textContent = `
+                /* Molecule Hologram Styles */
+                .molecule-hologram {
+                    position: absolute;
+                    bottom: 160px;
+                    right: 10%;
+                    width: 120px;
+                    height: 120px;
+                    opacity: 0.8;
+                    filter: drop-shadow(0 0 5px rgba(82, 200, 255, 0.8));
+                    z-index: 1;
+                    animation: float-right 6s infinite ease-in-out;
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
+                }
+                
+                @keyframes float-right {
+                    0%, 100% { transform: translateY(0) rotate(0deg); }
+                    50% { transform: translateY(-15px) rotate(5deg); }
+                }
+                
+                .molecule-sphere {
+                    position: absolute;
+                    border-radius: 50%;
+                    background: radial-gradient(circle at 30% 30%, rgba(82, 200, 255, 0.9), rgba(82, 200, 255, 0.4));
+                    box-shadow: 0 0 10px rgba(82, 200, 255, 0.8);
+                }
+                
+                .molecule-sphere.center {
+                    width: 30px;
+                    height: 30px;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: radial-gradient(circle at 30% 30%, rgba(52, 160, 255, 0.9), rgba(52, 160, 255, 0.4));
+                    z-index: 2;
+                }
+                
+                .molecule-sphere.electron {
+                    width: 12px;
+                    height: 12px;
+                    background: radial-gradient(circle at 30% 30%, rgba(100, 220, 255, 0.9), rgba(100, 220, 255, 0.4));
+                }
+                
+                .molecule-orbit {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    border: 1px solid rgba(82, 200, 255, 0.3);
+                    border-radius: 50%;
+                    transform-style: preserve-3d;
+                }
+                
+                .molecule-orbit.orbit-1 {
+                    width: 70px;
+                    height: 70px;
+                    margin-left: -35px;
+                    margin-top: -35px;
+                    animation: orbit-rotate-1 6s linear infinite;
+                }
+                
+                .molecule-orbit.orbit-2 {
+                    width: 90px;
+                    height: 60px;
+                    margin-left: -45px;
+                    margin-top: -30px;
+                    transform: rotateX(60deg);
+                    animation: orbit-rotate-2 8s linear infinite;
+                }
+                
+                .molecule-orbit.orbit-3 {
+                    width: 60px;
+                    height: 90px;
+                    margin-left: -30px;
+                    margin-top: -45px;
+                    transform: rotateY(60deg);
+                    animation: orbit-rotate-3 7s linear infinite;
+                }
+                
+                .molecule-orbit.orbit-1 .electron {
+                    top: 0;
+                    left: 50%;
+                    margin-left: -6px;
+                }
+                
+                .molecule-orbit.orbit-2 .electron {
+                    top: 50%;
+                    right: 0;
+                    margin-top: -6px;
+                }
+                
+                .molecule-orbit.orbit-3 .electron {
+                    bottom: 0;
+                    left: 50%;
+                    margin-left: -6px;
+                }
+                
+                @keyframes orbit-rotate-1 {
+                    0% { transform: rotateZ(0); }
+                    100% { transform: rotateZ(360deg); }
+                }
+                
+                @keyframes orbit-rotate-2 {
+                    0% { transform: rotateX(60deg) rotateZ(0); }
+                    100% { transform: rotateX(60deg) rotateZ(360deg); }
+                }
+                
+                @keyframes orbit-rotate-3 {
+                    0% { transform: rotateY(60deg) rotateZ(0); }
+                    100% { transform: rotateY(60deg) rotateZ(360deg); }
+                }
+                
+                /* Code Hologram Styles */
+                .code-hologram {
+                    position: absolute;
+                    bottom: 160px;
+                    left: 10%;
+                    width: 120px;
+                    height: 140px;
+                    opacity: 0.8;
+                    filter: drop-shadow(0 0 5px rgba(140, 255, 82, 0.8));
+                    z-index: 1;
+                    animation: float-left 5s infinite ease-in-out;
+                    perspective: 1000px;
+                }
+                
+                @keyframes float-left {
+                    0%, 100% { transform: translateY(0) rotate(0deg); }
+                    50% { transform: translateY(-10px) rotate(-5deg); }
+                }
+                
+                .code-lines {
+                    position: relative;
+                    width: 80%;
+                    height: 80%;
+                    margin: 10% auto;
+                }
+                
+                .code-line {
+                    position: absolute;
+                    height: 4px;
+                    left: 10%;
+                    right: 10%;
+                    background: linear-gradient(90deg, rgba(140, 255, 82, 0.8), rgba(140, 255, 82, 0.3));
+                    border-radius: 2px;
+                    animation: code-pulse 3s infinite;
+                }
+                
+                .code-line.line-1 { top: 10%; width: 60%; animation-delay: 0s; }
+                .code-line.line-2 { top: 25%; width: 80%; animation-delay: 0.5s; }
+                .code-line.line-3 { top: 40%; width: 70%; animation-delay: 1s; }
+                .code-line.line-4 { top: 55%; width: 90%; animation-delay: 1.5s; }
+                .code-line.line-5 { top: 70%; width: 50%; animation-delay: 2s; }
+                .code-line.line-6 { top: 85%; width: 75%; animation-delay: 2.5s; }
+                
+                @keyframes code-pulse {
+                    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+                    50% { opacity: 1; transform: scaleX(1.05); }
+                }
+                
+                .code-bracket {
+                    position: absolute;
+                    font-size: 50px;
+                    font-weight: bold;
+                    color: rgba(140, 255, 82, 0.6);
+                    text-shadow: 0 0 5px rgba(140, 255, 82, 0.8);
+                    animation: bracket-glow 4s infinite;
+                }
+                
+                .code-bracket.left {
+                    top: 10%;
+                    left: 0;
+                }
+                
+                .code-bracket.right {
+                    bottom: 10%;
+                    right: 0;
+                }
+                
+                @keyframes bracket-glow {
+                    0%, 100% { text-shadow: 0 0 5px rgba(140, 255, 82, 0.8); }
+                    50% { text-shadow: 0 0 15px rgba(140, 255, 82, 1); }
+                }
+                
+                /* Personality-specific hologram styles */
+                .hologram-robot.friendly ~ .molecule-hologram .molecule-sphere,
+                .hologram-robot.friendly ~ .code-hologram .code-line {
+                    animation-duration: 4s;
+                }
+                
+                .hologram-robot.zen ~ .molecule-hologram .molecule-sphere {
+                    background: radial-gradient(circle at 30% 30%, rgba(82, 200, 255, 0.9), rgba(82, 200, 255, 0.4));
+                }
+                
+                .hologram-robot.zen ~ .molecule-hologram .molecule-orbit {
+                    animation-duration: 12s;
+                }
+                
+                .hologram-robot.zen ~ .code-hologram .code-line {
+                    animation-duration: 6s;
+                    background: linear-gradient(90deg, rgba(82, 200, 255, 0.8), rgba(82, 200, 255, 0.3));
+                }
+                
+                .hologram-robot.zen ~ .code-hologram .code-bracket {
+                    color: rgba(82, 200, 255, 0.6);
+                    text-shadow: 0 0 5px rgba(82, 200, 255, 0.8);
+                }
+                
+                .hologram-robot.teacher ~ .molecule-hologram .molecule-sphere {
+                    background: radial-gradient(circle at 30% 30%, rgba(255, 150, 82, 0.9), rgba(255, 150, 82, 0.4));
+                }
+                
+                .hologram-robot.teacher ~ .molecule-hologram .molecule-orbit {
+                    border-color: rgba(255, 150, 82, 0.3);
+                }
+                
+                .hologram-robot.teacher ~ .code-hologram .code-line {
+                    background: linear-gradient(90deg, rgba(255, 150, 82, 0.8), rgba(255, 150, 82, 0.3));
+                }
+                
+                .hologram-robot.teacher ~ .code-hologram .code-bracket {
+                    color: rgba(255, 150, 82, 0.6);
+                    text-shadow: 0 0 5px rgba(255, 150, 82, 0.8);
+                }
+                
+                .hologram-robot.witty ~ .molecule-hologram .molecule-sphere {
+                    background: radial-gradient(circle at 30% 30%, rgba(255, 82, 200, 0.9), rgba(255, 82, 200, 0.4));
+                }
+                
+                .hologram-robot.witty ~ .molecule-hologram .molecule-orbit {
+                    border-color: rgba(255, 82, 200, 0.3);
+                    animation-duration: 3s;
+                }
+                
+                .hologram-robot.witty ~ .code-hologram .code-line {
+                    background: linear-gradient(90deg, rgba(255, 82, 200, 0.8), rgba(255, 82, 200, 0.3));
+                    animation-duration: 2s;
+                }
+                
+                .hologram-robot.witty ~ .code-hologram .code-bracket {
+                    color: rgba(255, 82, 200, 0.6);
+                    text-shadow: 0 0 5px rgba(255, 82, 200, 0.8);
+                }
+                
+                .hologram-robot.thinking ~ .molecule-hologram,
+                .hologram-robot.thinking ~ .code-hologram {
+                    animation-play-state: paused;
+                }
+                
+                .hologram-robot.thinking ~ .molecule-hologram .molecule-orbit {
+                    animation-duration: 2s;
+                }
+                
+                .hologram-robot.thinking ~ .code-hologram .code-line {
+                    animation-duration: 1s;
+                }
+                
+                .hologram-robot.listening ~ .molecule-hologram .molecule-sphere {
+                    animation: electron-pulse 1s infinite alternate;
+                }
+                
+                @keyframes electron-pulse {
+                    0% { transform: scale(0.8); }
+                    100% { transform: scale(1.2); }
+                }
+                
+                .hologram-robot.listening ~ .code-hologram .code-line {
+                    animation: code-scanning 1s infinite alternate;
+                }
+                
+                @keyframes code-scanning {
+                    0% { opacity: 0.4; }
+                    100% { opacity: 1; }
+                }
+                
+                @media (max-width: 768px) {
+                    .molecule-hologram {
+                        width: 80px;
+                        height: 80px;
+                        bottom: 120px;
+                        right: 5%;
+                    }
+                    
+                    .code-hologram {
+                        width: 80px;
+                        height: 100px;
+                        bottom: 120px;
+                        left: 5%;
+                    }
+                    
+                    .molecule-sphere.center {
+                        width: 20px;
+                        height: 20px;
+                    }
+                    
+                    .molecule-sphere.electron {
+                        width: 8px;
+                        height: 8px;
+                    }
+                    
+                    .molecule-orbit.orbit-1 {
+                        width: 50px;
+                        height: 50px;
+                        margin-left: -25px;
+                        margin-top: -25px;
+                    }
+                    
+                    .molecule-orbit.orbit-2 {
+                        width: 60px;
+                        height: 40px;
+                        margin-left: -30px;
+                        margin-top: -20px;
+                    }
+                    
+                    .molecule-orbit.orbit-3 {
+                        width: 40px;
+                        height: 60px;
+                        margin-left: -20px;
+                        margin-top: -30px;
+                    }
+                    
+                    .code-bracket {
+                        font-size: 30px;
+                    }
+                        .message.bot-message {
+    background-color: #f1f1f1;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: flex-start;
+    opacity: 1; /* Ensure visibility */
+    transition: none; /* Disable any transition that might affect visibility */
+}
+
+.message.user-message {
+    background-color: #e0e0e0;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: flex-end;
+    opacity: 1; /* Ensure visibility */
+    transition: none; /* Disable any transition */
+}
+
+.message-content {
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+.avatar {
+    margin-right: 10px;
+}
+
+                }
+            `;
+            document.head.appendChild(styleElement);
+        }
+        
+        // Create the robot welcome animation right away
+        function createWelcomeRobot() {
+            // Remove any existing welcome container first
+            const existingWelcome = document.querySelector('.welcome-container');
+            if (existingWelcome) {
+                existingWelcome.remove();
+            }
+            
+            // Create welcome message
+            const welcomeMessage = document.createElement('div');
+            welcomeMessage.className = 'welcome-message';
+            welcomeMessage.innerHTML = `
+                <h3>Hello, I'm Project X</h3>
+                <p class="typing-effect">How can I assist you today?</p>
+            `;
+            
+            messagesContainer.appendChild(welcomeMessage);
+            
+            // Create particles for hologram effect
+            createHologramParticles();
+            
+            // Create additional holograms
+            createAdditionalHolograms();
+        }
+        
+        // Create hologram particles
+        function createHologramParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            // Clear existing particles
+            particlesContainer.innerHTML = '';
+            
+            // Create particles
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 4}s`;
+                particle.style.animationDuration = `${3 + Math.random() * 3}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Auto-resize text area
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 120);
+            this.style.height = newHeight + 'px';
+            
+            // Change robot state to listening when user is typing
+            if (this.value.trim()) {
+                hologramRobot.className = 'hologram-robot listening';
+            } else {
+                hologramRobot.className = `hologram-robot ${currentPersonality}`;
+            }
+        });
+        
+        // Handle keydown events (Enter to send)
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!isWaitingForResponse && userInput.value.trim()) {
+                    sendMessage();
+                }
+            }
+        });
+        
+        // Send button click handler
+        sendButton.addEventListener('click', function() {
+            if (!isWaitingForResponse && userInput.value.trim()) {
+                sendMessage();
+            }
+        });
+        
+        // Handle personality change
+        personalitySelect.addEventListener('change', function() {
+            currentPersonality = this.value;
+            hologramRobot.className = `hologram-robot ${currentPersonality}`;
+        });
+        
+ // Add a user message to the chat
+function addUserMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user-message';
+
+    messageDiv.innerHTML = `
+        <div class="message-content">${message}</div>
+        <div class="avatar user-avatar">U</div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+// Add a bot message to the chat
+function addBotMessage(message, personality) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+
+    messageDiv.innerHTML = `
+        <div class="avatar bot-avatar">X</div>
+        <div class="message-content">
+            ${message}
+            <div class="personality-indicator">Mode: ${getPersonalityDisplayName(personality)}</div>
+        </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+
+    // Ensure the message is always visible initially
+    messageDiv.style.display = 'block';
+
+    // Scroll to bottom to show new response
+    scrollToBottom();
+
+    // Remove bot message after 10 minutes (600,000 ms)
+    setTimeout(() => {
+        if (messageDiv && messageDiv.parentNode) {
+            messageDiv.parentNode.removeChild(messageDiv);
+        }
+    }, 600000); // 10 minutes
+}
+
+// Show thinking indicator while waiting for response
+function showThinking() {
+    hologramRobot.className = 'hologram-robot thinking';
+
+    thinkingIndicator = document.createElement('div');
+    thinkingIndicator.className = 'message bot-message';
+
+    thinkingIndicator.innerHTML = `
+        <div class="avatar bot-avatar">X</div>
+        <div class="thinking">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    `;
+
+    // Add the thinking indicator to the messages container
+    messagesContainer.appendChild(thinkingIndicator);
+    scrollToBottom();
+}
+
+// Hide thinking indicator after response
+function hideThinking() {
+    if (thinkingIndicator && thinkingIndicator.parentNode) {
+        thinkingIndicator.parentNode.removeChild(thinkingIndicator);
+        thinkingIndicator = null;
+    }
+
+    // Reset robot state
+    hologramRobot.className = `hologram-robot ${currentPersonality}`;
+}
+
+// Scroll chat to bottom after new message
+function scrollToBottom() {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Get display name for personality
+function getPersonalityDisplayName(value) {
+    const options = {
+        'friendly': '✨ Friendly Assistant',
+        'zen': '🧘 Zen Master',
+        'teacher': '📚 Helpful Teacher',
+        'witty': '😏 Witty Companion'
+    };
+    return options[value] || value;
+}
+
+// Main function to send message to API and process response
+async function sendMessage() {
+    const message = userInput.value.trim();
+    userInput.value = '';
+    userInput.style.height = 'auto';
+
+    if (!message) return;
+
+    const personality = personalitySelect.value;
+    const voiceMode = voiceToggle.checked;
+
+    // Show the user's message in the chat
+    addUserMessage(message);
+
+    // Set the UI to a waiting state
+    isWaitingForResponse = true;
+    sendButton.disabled = true;
+    showThinking();
+
+    try {
+        const requestData = {
+            user_input: message,
+            personality_choice: personality,  // Ensure personality is included
+            voice_toggle: voiceMode
+        };
+
+        // Send the message to the backend API
+          const response = await fetch('http://127.0.0.1:7860/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData)
+});
+
+const data = await response.json();
+console.log("Backend response:", data); // Add this line
+
+
+        if (!response.ok || !response.body) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        hideThinking();
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let botResponse = '';
+        let botMessageDiv = document.createElement('div');
+        botMessageDiv.className = 'message bot-message';
+        botMessageDiv.innerHTML = `
+            <div class="avatar bot-avatar">X</div>
+            <div class="message-content"><span class="streamed-text"></span>
+                <div class="personality-indicator">Mode: ${getPersonalityDisplayName(personality)}</div>
+            </div>
+        `;
+        messagesContainer.appendChild(botMessageDiv);
+        scrollToBottom();
+
+        const textSpan = botMessageDiv.querySelector('.streamed-text');
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            botResponse += chunk;
+            textSpan.textContent += chunk;
+            scrollToBottom();
+        }
+
+        // Optional: remove message after 10 minutes like before
+        setTimeout(() => {
+            if (botMessageDiv && botMessageDiv.parentNode) {
+                botMessageDiv.parentNode.removeChild(botMessageDiv);
+            }
+        }, 600000); // 10 minutes
+
+
+    } catch (error) {
+        console.error('Error sending message:', error);
+        hideThinking();
+        addBotMessage("Error: Unable to connect to the server. Please make sure the backend API is running at http://localhost:7860/chat", personality);
+    } finally {
+        // Reset UI state after processing
+        isWaitingForResponse = false;
+        sendButton.disabled = false;
+        userInput.focus();
+    }
+}
+
+// Clear welcome message on first input focus
+userInput.addEventListener('focus', function () {
+    const welcomeContainer = document.querySelector('.welcome-container');
+    if (welcomeContainer) {
+        welcomeContainer.style.opacity = '0';
+        welcomeContainer.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+            if (welcomeContainer.parentNode) {
+                welcomeContainer.parentNode.removeChild(welcomeContainer);
+            }
+        }, 500);
+    }
+});
+
+// Initialize the chatbot
+window.onload = function () {
+    createWelcomeRobot();
+    userInput.focus();
+};
+
+
+     </script>
