@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMINA - AI Chatbot</title>
+    <!-- CSS styles excluded as requested -->
+     <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f5f5f5;
+            letter-spacing: 2px;
+        }
+
+        .logo span {
+            color: #8c52ff;
+            position: relative;
+            display: inline-block;
+            animation: float 3s infinite ease-in-out;
+            text-shadow: 0 0 8px rgba(140, 82, 255, 0.8);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Settings Panel Styles */
+        .settings-panel {
+            background-color: #1e1e1e;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .settings-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .settings-group label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        select {
+            background-color: #262626;
+            color: #f5f5f5;
+            border: 1px solid #444;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238c52ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        select:hover {
+            border-color: #8c52ff;
+            box-shadow: 0 4px 8px rgba(140, 82, 255, 0.2);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #8c52ff;
+            box-shadow: 0 0 0 3px rgba(140, 82, 255, 0.25);
+        }
+
+        /* Checkbox Styling */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toggle-container::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, transparent, #8c52ff, transparent);
+            transform: translateX(-100%);
+            animation: slideIn 2s infinite alternate;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateX(100%); }
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #363636;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #f5f5f5;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+
+        input:checked + .slider {
+            background-color: #8c52ff;
+            box-shadow: 0 0 8px rgba(140, 82, 255, 0.6);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Main Container Styles */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .chat-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Chat Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1e1e1e;
+            position: relative;
+            z-index: 2;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 6px;
+        }
+
+        /* Message Bubble Styles */
+        .message {
+            display: flex;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            justify-content: flex-end;
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+            animation: slideInLeft 0.4s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+        }
+
+        .user-message .message-content {
+            background-color: #8c52ff;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .bot-message .message-content {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        /* Avatar Styles */
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-avatar {
+            background-color: #564080;
+        }
+
+        .bot-avatar {
+            background-color: #444;
+        }
+
+        /* Input Area Styles */
+        .input-container {
+            margin-top: 1rem;
+            padding: 1rem 0;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        .input-field {
+            flex: 1;
+            background-color: #262626;
+            border: 1px solid #444;
+            border-radius: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            color: #f5f5f5;
+            font-size: 1rem;
+            resize: none;
+            min-height: 20px;
+            max-height: 120px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #8c52ff;
+        }
+
+        .send-button {
+            background-color: #8c52ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(140, 82, 255, 0.4);
+        }
+
+        .send-button:hover {
+            background-color: #9d6aff;
+            transform: scale(1.05);
+            animation: glowing 1.5s infinite;
+        }
+
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px rgba(140, 82, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(140, 82, 255, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(140, 82, 255, 0.5); }
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        /* Loading Animation */
+        .thinking {
+            display: flex;
+            padding: 0.75rem 1rem;
+            background-color: #2d2d2d;
+            border-radius: 1rem;
+            border-bottom-left-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #aaa;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.3s; }
+        .dot:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+        }
+
+        /* Holographic Robot Styles */
+        .hologram-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .hologram-ring {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(140, 82, 255, 0.2) 0%, rgba(140, 82, 255, 0) 70%);
+            animation: pulse-ring 4s infinite;
+            z-index: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
+            50% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0.2; transform: translateX(-50%) scale(0.8); }
+        }
+
+        .hologram-robot {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 180px;
+            animation: hover 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 10px rgba(140, 82, 255, 0.8));
+            z-index: 1;
+            opacity: 0.9;
+            transition: all 0.5s ease;
+        }
+
+        @keyframes hover {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .hologram-ring-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(140, 82, 255, 0.5);
+            animation: ring-rotate 10s linear infinite;
+        }
+
+        @keyframes ring-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hologram-robot-avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hologram-face {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background-color: rgba(30, 30, 30, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(140, 82, 255, 0.5);
+            overflow: hidden;
+        }
+
+        .hologram-face::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(140, 82, 255, 0.1) 0%, rgba(140, 82, 255, 0) 50%);
+            z-index: 1;
+        }
+
+        .hologram-eyes {
+            display: flex;
+            justify-content: space-around;
+            width: 70%;
+            margin-bottom: 10px;
+            z-index: 2;
+        }
+
+        .hologram-eye {
+            width: 18px;
+            height: 18px;
+            background-color: #8c52ff;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+            box-shadow: 0 0 10px rgba(140, 82, 255, 0.8);
+        }
+
+        @keyframes blink {
+            0%, 96%, 98% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+
+        .hologram-eye::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 30%;
+            height: 30%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        .hologram-mouth {
+            width: 40px;
+            height: 8px;
+            background-color: #8c52ff;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 0 8px rgba(140, 82, 255, 0.8);
+        }
+
+        .hologram-mouth::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #8c52ff, #b78dff, #8c52ff);
+            animation: speak 2s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes speak {
+            0%, 100% { transform: scaleX(0.8); }
+            50% { transform: scaleX(1.2); }
+        }
+
+        .hologram-scan-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(140, 82, 255, 0.1),
+                rgba(140, 82, 255, 0.1) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            pointer-events: none;
+            z-index: 3;
+            animation: scan-move 2s linear infinite;
+        }
+
+        @keyframes scan-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 10px; }
+        }
+
+        .hologram-glitch {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(140, 82, 255, 0.2);
+            opacity: 0;
+            z-index: 2;
+            animation: glitch 5s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { opacity: 0; transform: translateX(0); }
+            92% { opacity: 0.5; transform: translateX(-5px); }
+            94% { opacity: 0.5; transform: translateX(5px); }
+            96% { opacity: 0.5; transform: translateX(-2px); }
+            98% { opacity: 0.5; transform: translateX(2px); }
+        }
+
+        .hologram-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: rgba(140, 82, 255, 0.6);
+            border-radius: 50%;
+            animation: float-up 4s infinite linear;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100%) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100%) translateX(10px); opacity: 0; }
+        }
+
+        /* Robot Emotion States */
+        .hologram-robot.friendly .hologram-face {
+            background-color: rgba(30, 30, 30, 0.5);
+        }
+        
+        .hologram-robot.friendly .hologram-eye {
+            background-color: #8c52ff;
+            animation: friendly-blink 4s infinite;
+        }
+        
+        @keyframes friendly-blink {
+            0%, 96%, 98% { transform: scaleY(1); }
+            97% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.friendly .hologram-mouth {
+            width: 40px;
+            height: 10px;
+            border-radius: 10px;
+            transform: scaleX(1.1);
+        }
+
+        .hologram-robot.zen .hologram-face {
+            background-color: rgba(30, 60, 80, 0.5);
+        }
+        
+        .hologram-robot.zen .hologram-eye {
+            background-color: #52c8ff;
+            animation: zen-blink 8s infinite;
+            height: 6px;
+        }
+        
+        @keyframes zen-blink {
+            0%, 98%, 100% { transform: scaleY(1); }
+            99% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.zen .hologram-mouth {
+            width: 30px;
+            height: 6px;
+            border-radius: 10px;
+            background-color: #52c8ff;
+        }
+
+        .hologram-robot.teacher .hologram-face {
+            background-color: rgba(60, 30, 30, 0.5);
+        }
+        
+        .hologram-robot.teacher .hologram-eye {
+            background-color: #ff9652;
+            animation: teacher-blink 5s infinite;
+        }
+        
+        @keyframes teacher-blink {
+            0%, 95%, 97% { transform: scaleY(1); }
+            96% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.teacher .hologram-mouth {
+            width: 35px;
+            height: 8px;
+            border-radius: 10px;
+            background-color: #ff9652;
+        }
+        
+        .hologram-robot.teacher::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            background-color: rgba(255, 150, 82, 0.3);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .hologram-robot.witty .hologram-face {
+            background-color: rgba(60, 20, 60, 0.5);
+        }
+        
+        .hologram-robot.witty .hologram-eye {
+            background-color: #ff52c8;
+            animation: witty-blink 3s infinite;
+        }
+        
+        @keyframes witty-blink {
+            0%, 90%, 92%, 98%, 100% { transform: scaleY(1); }
+            91%, 99% { transform: scaleY(0.1); }
+        }
+        
+        .hologram-robot.witty .hologram-mouth {
+            width: 40px;
+            height: 8px;
+            border-radius: 10px 10px 0 0;
+            background-color: #ff52c8;
+            transform: translateY(-3px) rotate(10deg);
+        }
+
+        .hologram-robot.thinking .hologram-eye {
+            animation: thinking 1s infinite;
+            background-color: #52ffb8;
+        }
+        
+        @keyframes thinking {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .hologram-robot.thinking .hologram-mouth {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: thinking-mouth 2s infinite;
+            background-color: #52ffb8;
+        }
+        
+        @keyframes thinking-mouth {
+            0%, 100% { transform: scale(0.8); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .hologram-robot.listening .hologram-eye {
+            animation: listening 0.5s infinite alternate;
+            background-color: #ffff52;
+        }
+        
+        @keyframes listening {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1.1); }
+        }
+        
+        .hologram-robot.listening .hologram-face {
+            border-color: rgba(255, 255, 82, 0.5);
+        }
+        
+        .hologram-robot.listening .hologram-mouth {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: listening-mouth 0.5s infinite alternate;
+            background-color: #ffff52;
+        }
+        
+        @keyframes listening-mouth {
+            0% { transform: scale(0.7); }
+            100% { transform: scale(1); }
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            color: #f5f5f5;
+            max-width: 80%;
+            margin: 0 auto;
+            padding: 2rem 0;
+            position: relative;
+            z-index: 3;
+        }
+        
+        .welcome-message h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #8c52ff, #b78dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .welcome-message p {
+            color: #aaa;
+            line-height: 1.5;
+            animation: fadeIn 1s ease-in-out 0.5s both;
+        }
+        
+        .welcome-message .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #8c52ff;
+            width: 0;
+            animation: typing 3.5s steps(40, end) forwards, blink-caret 0.75s step-end infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+          
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #8c52ff }
+        }
+
+        .personality-indicator {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            color: #aaa;
+            font-style: italic;
+            background: linear-gradient(90deg, #8c52ff, #b78dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Logo Animation */
+        .logo-glow {
+            position: relative;
+        }
+        
+        .logo-glow::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #8c52ff, transparent);
+            transform: translateY(-50%);
+            z-index: -1;
+            animation: glow-pulse 2s infinite;
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        @media (max-width: 768px) {
+            .header-content, .settings-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .message-content {
+                max-width: 90%;
+            }
+
+            .hologram-robot {
+                width: 140px;
+                height: 140px;
+                bottom: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1 class="logo-glow">LUMI<span>NA</span></h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="settings-panel">
+        <div class="settings-container">
+            <div class="settings-group">
+                <label for="personality-select">AI Personality:</label>
+                <select id="personality-select" class="personality-select">
+                    <option value="friendly">✨ Friendly Assistant</option>
+                    <option value="zen">🧘 Zen Master</option>
+                    <option value="teacher">📚 Helpful Teacher</option>
+                    <option value="witty">😏 Witty Companion</option>
+                </select>
+            </div>
+            <div class="toggle-container">
+                <label for="voice-toggle">Voice Mode:</label>
+                <label class="switch">
+                    <input type="checkbox" id="voice-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <!-- Hologram Container -->
+        <div class="hologram-container">
+            <div class="hologram-ring">
+                <div class="hologram-ring-inner"></div>
+            </div>
+            <div class="hologram-robot friendly" id="hologram-robot">
+                <div class="hologram-scan-lines"></div>
+                <div class="hologram-glitch"></div>
+                <div class="hologram-robot-avatar">
+                    <div class="hologram-face">
+                        <div class="hologram-eyes">
+                            <div class="hologram-eye"></div>
+                            <div class="hologram-eye"></div>
+                        </div>
+                        <div class="hologram-mouth"></div>
+                    </div>
+                </div>
+                <div class="hologram-particles">
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                    <div class="particle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h3 class="typing-effect">Welcome to LUMINA</h3>
+                <p>Your personal AI assistant ready to help with any questions.</p>
+                <div class="personality-indicator">Currently in: Friendly Assistant mode</div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messages-container">
+                <!-- Messages will be dynamically added here -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <textarea class="input-field" id="user-input" placeholder="Type your message here..." rows="1"></textarea>
+                <button class="send-button" id="send-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+    <script>
+        // LUMINA AI Chatbot - Main JavaScript File
+
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const messageContainer = document.querySelector('.messages-container') || createMessagesContainer();
+    const inputField = document.querySelector('.input-field') || createInputField();
+    const sendButton = document.querySelector('.send-button') || createSendButton();
+    const personalitySelect = document.getElementById('personality-select');
+    const voiceToggle = document.getElementById('voice-toggle');
+    const hologramRobot = document.getElementById('hologram-robot');
+    
+    // State Management
+    const state = {
+        messages: [],
+        isThinking: false,
+        currentPersonality: personalitySelect ? personalitySelect.value : 'friendly',
+        voiceEnabled: voiceToggle ? voiceToggle.checked : false,
+        synth: window.speechSynthesis,
+        recognition: null
+    };
+
+    // Initialize speech recognition if available
+    if (window.webkitSpeechRecognition || window.SpeechRecognition) {
+        const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        state.recognition = new SpeechRecognition();
+        state.recognition.continuous = false;
+        state.recognition.interimResults = false;
+        
+        state.recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            inputField.value = transcript;
+            updateRobotState('friendly');
+        };
+        
+        state.recognition.onend = () => {
+            if (voiceToggle && voiceToggle.checked) {
+                updateRobotState('friendly');
+            }
+        };
+    }
+
+    // Initialize with welcome message
+    createWelcomeMessage();
+
+    // Event Listeners
+    if (sendButton) {
+        sendButton.addEventListener('click', handleSendMessage);
+    }
+    
+    if (inputField) {
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+            }
+        });
+        
+        // Auto-resize textarea
+        inputField.addEventListener('input', () => {
+            inputField.style.height = 'auto';
+            inputField.style.height = Math.min(inputField.scrollHeight, 120) + 'px';
+            
+            // Enable/disable send button based on input
+            if (sendButton) {
+                sendButton.disabled = inputField.value.trim() === '';
+            }
+        });
+    }
+    
+    if (personalitySelect) {
+        personalitySelect.addEventListener('change', (e) => {
+            state.currentPersonality = e.target.value;
+            updateRobotState(state.currentPersonality);
+        });
+    }
+    
+    if (voiceToggle) {
+        voiceToggle.addEventListener('change', (e) => {
+            state.voiceEnabled = e.target.checked;
+            
+            if (state.voiceEnabled) {
+                startListening();
+            } else {
+                if (state.recognition) {
+                    state.recognition.stop();
+                }
+                updateRobotState(state.currentPersonality);
+            }
+        });
+    }
+
+    // Main Functions
+    function handleSendMessage() {
+        if (!inputField || state.isThinking || inputField.value.trim() === '') return;
+        
+        const userMessage = inputField.value.trim();
+        addMessage('user', userMessage);
+        
+        inputField.value = '';
+        inputField.style.height = 'auto';
+        if (sendButton) {
+            sendButton.disabled = true;
+        }
+        
+        // Show thinking animation
+        showThinkingAnimation();
+        
+        // Process the message and get AI response
+        processUserMessage(userMessage);
+    }
+    
+    function processUserMessage(message) {
+        updateRobotState('thinking');
+        
+        // Simulate AI response time (replace with actual API call)
+        setTimeout(() => {
+            const responses = {
+                friendly: [
+                    "I'm happy to help with that! Let me know if you need anything else.",
+                    "That's a great question! Here's what I think...",
+                    "I'm glad you asked me about that. Here's what I can tell you.",
+                    "I'm here to assist! Let me address your question."
+                ],
+                zen: [
+                    "Consider this perspective... the answer may be simpler than it appears.",
+                    "The path to understanding begins with careful reflection.",
+                    "In the space between questions lies wisdom. Let us explore together.",
+                    "Patience reveals all answers in time. Here's my thought..."
+                ],
+                teacher: [
+                    "An excellent inquiry! Let's break this down step by step.",
+                    "This is an important concept to understand. Allow me to explain.",
+                    "Let's approach this systematically to ensure complete understanding.",
+                    "This presents a wonderful learning opportunity. Here's my explanation..."
+                ],
+                witty: [
+                    "Well, that's an interesting one! Here's my slightly-less-confused-than-you-are take on it.",
+                    "If I had a dollar for every time I was asked that... I'd have exactly one dollar now!",
+                    "Let me put on my thinking cap—or in my case, activate my thinking circuits!",
+                    "That question is right in my wheelhouse! Or should I say... my digital playground?"
+                ]
+            };
+            
+            // Select a random response based on personality
+            const personalityResponses = responses[state.currentPersonality] || responses.friendly;
+            const randomIndex = Math.floor(Math.random() * personalityResponses.length);
+            let botResponse = personalityResponses[randomIndex];
+            
+            // Add more content based on the user's message
+            if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi ')) {
+                botResponse += " It's great to meet you! How can I assist you today?";
+            } else if (message.toLowerCase().includes('help')) {
+                botResponse += " I'm designed to assist with information, answer questions, or just chat. What would you like to know about?";
+            } else if (message.toLowerCase().includes('time')) {
+                const now = new Date();
+                botResponse += ` The current time is ${now.toLocaleTimeString()}.`;
+            } else if (message.toLowerCase().includes('weather')) {
+                botResponse += " I don't have access to real-time weather data, but I'd be happy to discuss weather patterns or climate in general!";
+            } else if (message.length < 10) {
+                botResponse += " Feel free to provide more details so I can give you a more comprehensive response.";
+            } else {
+                botResponse += " Is there anything specific you'd like me to elaborate on?";
+            }
+            
+            // Remove thinking animation and add bot message
+            removeThinkingAnimation();
+            addMessage('bot', botResponse);
+            
+            // Speak response if voice is enabled
+            if (state.voiceEnabled && state.synth) {
+                const utterance = new SpeechSynthesisUtterance(botResponse);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                state.synth.speak(utterance);
+            }
+            
+            updateRobotState(state.currentPersonality);
+            
+            // Start listening again if voice mode is enabled
+            if (state.voiceEnabled) {
+                setTimeout(startListening, 1000);
+            }
+        }, 1500 + Math.random() * 1000); // Random delay between 1.5-2.5 seconds
+    }
+    
+    function addMessage(type, content) {
+        // Create message elements
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = `avatar ${type}-avatar`;
+        avatar.textContent = type === 'user' ? 'U' : 'L';
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.textContent = content;
+        
+        // Add personality indicator for bot messages
+        if (type === 'bot') {
+            const personalityIndicator = document.createElement('div');
+            personalityIndicator.className = 'personality-indicator';
+            
+            const personalityLabels = {
+                friendly: "✨ Friendly Assistant",
+                zen: "🧘 Zen Master",
+                teacher: "📚 Helpful Teacher",
+                witty: "😏 Witty Companion"
+            };
+            
+            personalityIndicator.textContent = personalityLabels[state.currentPersonality] || personalityLabels.friendly;
+            messageContent.appendChild(personalityIndicator);
+        }
+        
+        // Assemble and add message to container
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(messageContent);
+        
+        if (messageContainer) {
+            messageContainer.appendChild(messageDiv);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+        
+        // Store message
+        state.messages.push({ type, content });
+    }
+    
+    function showThinkingAnimation() {
+        state.isThinking = true;
+        
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.className = 'message bot-message thinking-message';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar bot-avatar';
+        avatar.textContent = 'L';
+        
+        const thinking = document.createElement('div');
+        thinking.className = 'thinking';
+        
+        for (let i = 0; i < 3; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            thinking.appendChild(dot);
+        }
+        
+        thinkingDiv.appendChild(avatar);
+        thinkingDiv.appendChild(thinking);
+        
+        if (messageContainer) {
+            messageContainer.appendChild(thinkingDiv);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+    }
+    
+    function removeThinkingAnimation() {
+        const thinkingMessage = document.querySelector('.thinking-message');
+        if (thinkingMessage && messageContainer) {
+            messageContainer.removeChild(thinkingMessage);
+        }
+        state.isThinking = false;
+    }
+    
+    function updateRobotState(state) {
+        if (!hologramRobot) return;
+        
+        // Remove all states
+        hologramRobot.classList.remove('friendly', 'zen', 'teacher', 'witty', 'thinking', 'listening');
+        
+        // Add new state
+        hologramRobot.classList.add(state);
+    }
+    
+    function startListening() {
+        if (state.recognition && state.voiceEnabled) {
+            updateRobotState('listening');
+            setTimeout(() => {
+                try {
+                    state.recognition.start();
+                } catch (e) {
+                    console.error('Speech recognition error:', e);
+                    updateRobotState(state.currentPersonality);
+                }
+            }, 300);
+        }
+    }
+    
+    function createWelcomeMessage() {
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = 'welcome-message';
+        
+        const welcomeTitle = document.createElement('h3');
+        welcomeTitle.className = 'typing-effect';
+        welcomeTitle.textContent = 'Welcome to LUMINA';
+        
+        const welcomeText = document.createElement('p');
+        welcomeText.textContent = 'Your AI companion for meaningful conversations. Choose a personality and start chatting!';
+        
+        welcomeDiv.appendChild(welcomeTitle);
+        welcomeDiv.appendChild(welcomeText);
+        
+        if (messageContainer) {
+            messageContainer.appendChild(welcomeDiv);
+        }
+    }
+
+    // DOM Creation Functions (in case elements are missing)
+    function createMessagesContainer() {
+        const container = document.createElement('div');
+        container.className = 'messages-container';
+        
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+            chatContainer.prepend(container);
+        } else {
+            const main = document.querySelector('main');
+            if (main) {
+                const newChatContainer = document.createElement('div');
+                newChatContainer.className = 'chat-container';
+                newChatContainer.appendChild(container);
+                main.appendChild(newChatContainer);
+            } else {
+                document.body.appendChild(container);
+            }
+        }
+        
+        return container;
+    }
+    
+    function createInputField() {
+        const textarea = document.createElement('textarea');
+        textarea.className = 'input-field';
+        textarea.placeholder = 'Type your message...';
+        textarea.rows = 1;
+        
+        const inputContainer = document.querySelector('.input-container') || createInputContainer();
+        inputContainer.prepend(textarea);
+        
+        return textarea;
+    }
+    
+    function createSendButton() {
+        const button = document.createElement('button');
+        button.className = 'send-button';
+        button.disabled = true;
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        `;
+        
+        const inputContainer = document.querySelector('.input-container') || createInputContainer();
+        inputContainer.appendChild(button);
+        
+        return button;
+    }
+    
+    function createInputContainer() {
+        const container = document.createElement('div');
+        container.className = 'input-container';
+        
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+            chatContainer.appendChild(container);
+        } else {
+            const main = document.querySelector('main');
+            if (main) {
+                const newChatContainer = document.createElement('div');
+                newChatContainer.className = 'chat-container';
+                newChatContainer.appendChild(container);
+                main.appendChild(newChatContainer);
+            } else {
+                document.body.appendChild(container);
+            }
+        }
+        
+        return container;
+    }
+    
+    // Create particles for hologram effect
+    function createParticles() {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'hologram-particles';
+        
+        if (hologramRobot) {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${3 + Math.random() * 3}s`;
+                particle.style.animationDelay = `${Math.random() * 2}s`;
+                particlesContainer.appendChild(particle);
+            }
+            
+            hologramRobot.appendChild(particlesContainer);
+        }
+    }
+    
+    // Initialize particles
+    createParticles();
+    
+    // Auto-focus input field
+    if (inputField) {
+        setTimeout(() => {
+            inputField.focus();
+        }, 500);
+    }
+});
+
+// Main function to send message to API and process response
+async function sendMessage() {
+    const message = userInput.value.trim();
+    userInput.value = '';
+    userInput.style.height = 'auto';
+
+    if (!message) return;
+
+    const personality = personalitySelect.value;
+    const voiceMode = voiceToggle.checked;
+
+    // Show the user's message in the chat
+    addUserMessage(message);
+
+    // Set the UI to a waiting state
+    isWaitingForResponse = true;
+    sendButton.disabled = true;
+    showThinking();
+
+    try {
+        const requestData = {
+            user_input: message,
+            personality_choice: personality,  // Ensure personality is included
+            voice_toggle: voiceMode
+        };
+
+        // Send the message to the backend API
+        const response = await fetch('http://127.0.0.1:7860/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Hide the thinking indicator once a response is received
+        hideThinking();
+
+        // If response is valid, add the bot's message to the chat
+        if (data && data.response) {
+            addBotMessage(data.response, personality);
+        } else {
+            addBotMessage("I'm sorry, I couldn't process your request.", personality);
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        hideThinking();
+        addBotMessage("Error: Unable to connect to the server. Please make sure the backend API is running at http://localhost:7860/chat", personality);
+    } finally {
+        // Reset UI state after processing
+        isWaitingForResponse = false;
+        sendButton.disabled = false;
+        userInput.focus();
+    }
+}
+
+// Clear welcome message on first input focus
+userInput.addEventListener('focus', function () {
+    const welcomeContainer = document.querySelector('.welcome-container');
+    if (welcomeContainer) {
+        welcomeContainer.style.opacity = '0';
+        welcomeContainer.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+            if (welcomeContainer.parentNode) {
+                welcomeContainer.parentNode.removeChild(welcomeContainer);
+            }
+        }, 500);
+    }
+});
+
+// Initialize the chatbot
+window.onload = function () {
+    createWelcomeRobot();
+    userInput.focus();
+};
+
+
+     </script>
+</body>
+</html>
