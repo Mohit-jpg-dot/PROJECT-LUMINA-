@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUMINA</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0f0e17;
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            perspective: 1000px;
+            background: radial-gradient(circle at top right, #341677, #0f0e17 60%);
+            overflow: hidden;
+        }
+        
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(138, 43, 226, 0.3);
+            animation: float 15s infinite linear;
+            filter: blur(5px);
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-20vh) translateX(20vw) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        /* Main container */
+        .chat-container {
+            width: 100%;
+            max-width: 700px;
+            height: 80vh;
+            background: rgba(30, 30, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 30px rgba(138, 43, 226, 0.3), 
+                        0 0 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            transform-style: preserve-3d;
+            animation: container-entry 1s ease-out forwards;
+        }
+        
+        @keyframes container-entry {
+            from {
+                transform: translateY(30px) rotateX(10deg);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) rotateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Header styles */
+        .chat-header {
+            background: linear-gradient(135deg, #9d4edd, #553b8b);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #6c2cb7;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 6s infinite;
+        }
+        
+        @keyframes shine {
+            0% {
+                left: -100%;
+            }
+            20%, 100% {
+                left: 100%;
+            }
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff8ba7, #9d4edd);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+            position: relative;
+            z-index: 2;
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
+                transform: scale(1.05);
+            }
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin-left: 10px;
+            position: relative;
+        }
+        
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(76, 175, 80, 0.4);
+            animation: ripple 1.5s infinite;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
+        /* Chat area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(26, 27, 38, 0.4);
+            scrollbar-width: thin;
+            scrollbar-color: #553b8b #2d2d3d;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #2d2d3d;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: #553b8b;
+            border-radius: 10px;
+        }
+        
+        /* Welcome message */
+        .welcome {
+            text-align: center;
+            margin: auto;
+            color: #e0e0e0;
+            max-width: 80%;
+            padding: 30px;
+            background: rgba(45, 45, 61, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            transform-style: preserve-3d;
+            animation: welcome-entry 1s ease-out 0.5s forwards;
+            opacity: 0;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+        }
+        
+        @keyframes welcome-entry {
+            from {
+                transform: translateY(20px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .welcome .avatar {
+            margin: 0 auto 20px;
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            background: linear-gradient(135deg, #ff8ba7, #9d4edd, #553b8b);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome .avatar::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right, 
+                rgba(255, 255, 255, 0), 
+                rgba(255, 255, 255, 0.3), 
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(45deg);
+            animation: shine-avatar 3s infinite;
+        }
+        
+        @keyframes shine-avatar {
+            0% {
+                left: -100%;
+            }
+            20%, 100% {
+                left: 100%;
+            }
+        }
+        
+        .welcome h3 {
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #ff8ba7, #9d4edd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.5rem;
+        }
+        
+        .welcome p {
+            color: #bcbcce;
+            line-height: 1.5;
+        }
+        
+        /* Message bubbles */
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #553b8b, #9d4edd);
+            border-bottom-right-radius: 4px;
+            animation: message-pop-right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom right;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #2d2d3d, #3d3d55);
+            border-bottom-left-radius: 4px;
+            animation: message-pop-left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom left;
+        }
+        
+        @keyframes message-pop-right {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+        
+        @keyframes message-pop-left {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+        
+        .message::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+        
+        .user-message::before {
+            background: radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.15), transparent 70%);
+        }
+        
+        .bot-message::before {
+            background: radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.15), transparent 70%);
+        }
+        
+        .message:hover::before {
+            opacity: 1;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            color: rgba(240, 240, 240, 0.7);
+            position: absolute;
+            bottom: -18px;
+        }
+        
+        .user-message .message-time {
+            right: 8px;
+        }
+        
+        .bot-message .message-time {
+            left: 8px;
+        }
+        
+        /* Cursor styles for live typing */
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 16px;
+            background-color: #fff;
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        /* Input area */
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: rgba(45, 45, 61, 0.8);
+            border-top: 1px solid #383854;
+            position: relative;
+            z-index: 10;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(58, 58, 80, 0.8);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        #user-input:focus {
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.3), inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            background: rgba(65, 65, 90, 0.9);
+        }
+        
+        #send-btn {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #9d4edd, #553b8b);
+            border: none;
+            border-radius: 50%;
+            margin-left: 10px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(138, 43, 226, 0.3);
+        }
+        
+        #send-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.5);
+        }
+        
+        #send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #send-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #send-btn:hover::after {
+            opacity: 1;
+        }
+        
+        /* Typing indicator */
+        .typing {
+            display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #2d2d3d, #3d3d55);
+            border-radius: 18px;
+            width: fit-content;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: scale(0);
+            transform-origin: center left;
+        }
+        
+        .typing.active {
+            display: flex;
+            animation: typing-pop 0.3s forwards;
+        }
+        
+        @keyframes typing-pop {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 0 3px;
+            background: linear-gradient(to bottom, #bcbcce, #8a8aa3);
+            animation: bounce 1.3s infinite ease-in-out;
+        }
+        
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+            background: linear-gradient(to bottom, #ff8ba7, #e56b9f);
+        }
+        
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background: linear-gradient(to bottom, #9d4edd, #7b2cbf);
+        }
+        
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background: linear-gradient(to bottom, #5a189a, #3c096c);
+        }
+        
+        @keyframes bounce {
+            0%, 60%, 100% { 
+                transform: translateY(0);
+            }
+            30% { 
+                transform: translateY(-6px);
+            }
+        }
+        
+        /* Animations for sending message */
+        @keyframes send-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(138, 43, 226, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(138, 43, 226, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="particles" id="particles"></div>
+    
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="avatar">O</div>
+            <div class="status">
+                <center><h2>LUMINA</h2></center>
+                <div class="status-dot"></div>
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <div class="welcome" id="welcome">
+                <div class="avatar">O</div>
+                <h3>Welcome to LUMINA Bot</h3>
+                <p>Start a conversation by typing a message below.</p>
+            </div>
+            
+            <!-- Messages will be added here -->
+            
+            <div class="typing" id="typing-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const welcome = document.getElementById('welcome');
+        const particles = document.getElementById('particles');
+        
+        // API URL
+        const apiUrl = "http://127.0.0.1:5050/get-answer";
+        
+        // Create background particles
+        function createParticles() {
+            const colors = ['rgba(138, 43, 226, 0.3)', 'rgba(157, 78, 221, 0.3)', 'rgba(90, 24, 154, 0.3)'];
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random properties
+                const size = Math.random() * 50 + 10;
+                const delay = Math.random() * 15;
+                const duration = Math.random() * 10 + 10;
+                const xPos = Math.random() * 100;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Apply styles
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${xPos}vw`;
+                particle.style.background = color;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particles.appendChild(particle);
+            }
+        }
+        
+        // Load chat history
+        let messages = JSON.parse(localStorage.getItem('lumina_messages') || '[]');
+        
+        // Display saved messages
+        if (messages.length > 0) {
+            welcome.style.display = 'none';
+            messages.forEach(msg => {
+                if (msg.sender === 'bot') {
+                    appendMessage(msg.text, msg.sender, msg.time, false, false); // Don't animate old bot messages
+                } else {
+                    appendMessage(msg.text, msg.sender, msg.time, false);
+                }
+            });
+            scrollToBottom();
+        }
+        
+        // Event listeners
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // Initialize particles
+        createParticles();
+        
+        // Functions
+        function appendMessage(text, sender, time = getCurrentTime(), save = true, animate = true) {
+            // Hide welcome message if visible
+            if (welcome.style.display !== 'none') {
+                welcome.style.display = 'none';
+            }
+            
+            // Create message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            // If it's a bot message and we want to animate it
+            if (sender === 'bot' && animate) {
+                messageDiv.textContent = ''; // Empty at first
+                const typingCursor = document.createElement('span');
+                typingCursor.className = 'typing-cursor';
+                messageDiv.appendChild(typingCursor);
+                
+                // Start typing animation
+                let charIndex = 0;
+                const typingInterval = setInterval(() => {
+                    if (charIndex < text.length) {
+                        // Insert one character and reposition cursor
+                        messageDiv.removeChild(typingCursor);
+                        messageDiv.textContent += text[charIndex];
+                        messageDiv.appendChild(typingCursor);
+                        charIndex++;
+                        scrollToBottom();
+                    } else {
+                        // Done typing, remove cursor and add timestamp
+                        clearInterval(typingInterval);
+                        messageDiv.removeChild(typingCursor);
+                        
+                        // Add timestamp
+                        const timeSpan = document.createElement('span');
+                        timeSpan.className = 'message-time';
+                        timeSpan.textContent = time;
+                        messageDiv.appendChild(timeSpan);
+                    }
+                }, 30); // Adjust speed by changing this value (lower = faster)
+            } else {
+                // Regular non-animated message
+                messageDiv.textContent = text;
+                
+                // Add timestamp
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'message-time';
+                timeSpan.textContent = time;
+                messageDiv.appendChild(timeSpan);
+            }
+            
+            // Add to chat
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            
+            // Save to history if needed
+            if (save) {
+                messages.push({ text, sender, time });
+                localStorage.setItem('lumina_messages', JSON.stringify(messages));
+            }
+            
+            scrollToBottom();
+            
+            // Add animation to send button when sending a message
+            if (sender === 'user') {
+                sendBtn.style.animation = 'send-pulse 1s';
+                setTimeout(() => {
+                    sendBtn.style.animation = '';
+                }, 1000);
+            }
+            
+            return messageDiv;
+        }
+        
+        function getCurrentTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Convert 0 to 12
+            return `${hours}:${minutes} ${ampm}`;
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showTyping() {
+            typingIndicator.classList.add('active');
+            scrollToBottom();
+        }
+        
+        function hideTyping() {
+            typingIndicator.classList.remove('active');
+        }
+        
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            // Add user message with animation
+            appendMessage(text, 'user');
+            userInput.value = '';
+            
+            // Show typing indicator with animation
+            showTyping();
+            
+            try {
+                // Send request to API
+                const response = await fetch(`${apiUrl}?text=${encodeURIComponent(text)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Hide typing indicator before showing the bot response
+                hideTyping();
+                
+                // Add bot message with typing animation
+                appendMessage(data.answer || "Sorry, I couldn't process that request.", 'bot');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                hideTyping();
+                appendMessage(`Error: ${error.message}. Make sure the API server is running.`, 'bot');
+            }
+        }
+        
+        // Add confetti effect when clicking the send button
+        sendBtn.addEventListener('click', createConfetti);
+        
+        function createConfetti() {
+            const confettiCount = 20;
+            const colors = ['#ff8ba7', '#9d4edd', '#5a189a', '#3c096c', '#ffffff'];
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = `${Math.random() * 8 + 2}px`;
+                confetti.style.height = `${Math.random() * 8 + 2}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.opacity = Math.random() * 0.8 + 0.2;
+                
+                // Calculate position relative to send button
+                const sendBtnRect = sendBtn.getBoundingClientRect();
+                const startX = sendBtnRect.left + sendBtnRect.width / 2;
+                const startY = sendBtnRect.top + sendBtnRect.height / 2;
+                
+                confetti.style.left = `${startX}px`;
+                confetti.style.top = `${startY}px`;
+                
+                document.body.appendChild(confetti);
+                
+                // Random direction
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 60 + 40;
+                const destX = startX + Math.cos(angle) * distance;
+                const destY = startY + Math.sin(angle) * distance;
+                
+                // Animation
+                confetti.animate([
+                    { transform: 'translate(-50%, -50%) scale(0.5) rotate(0deg)', left: `${startX}px`, top: `${startY}px` },
+                    { transform: `translate(-50%, -50%) scale(1) rotate(${Math.random() * 360}deg)`, left: `${destX}px`, top: `${destY}px`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 600 + 600,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
+                    fill: 'forwards'
+                }).onfinish = () => {
+                    confetti.remove();
+                };
+            }
+        }
+        
+        // Focus input on load
+        userInput.focus();
+        
+        // Add subtle floating animation to the chat container
+        const chatContainer = document.querySelector('.chat-container');
+        let floatY = 0;
+        let floatX = 0;
+        
+        function floatContainer() {
+            floatY += 0.01;
+            floatX += 0.007;
+            
+            const translateY = Math.sin(floatY) * 3;
+            const translateX = Math.sin(floatX) * 2;
+            
+            chatContainer.style.transform = `translateY(${translateY}px) translateX(${translateX}px)`;
+            
+            requestAnimationFrame(floatContainer);
+        }
+        
+        // Start floating animation with a delay
+        setTimeout(() => {
+            floatContainer();
+        }, 1500);
+    </script>
+</body>
+</html>
